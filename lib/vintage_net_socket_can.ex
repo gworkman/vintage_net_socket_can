@@ -42,14 +42,18 @@ defmodule VintageNetSocketCan do
       type: __MODULE__,
       source_config: normalized,
       child_specs: [
-        {MuonTrap.Daemon,
-         ["socketcand", ["-i", ifname, "-l", config.bind_interface, "-p", "#{config.port}"]]}
+        {VintageNetSocketCan.SocketCanDaemon,
+         [
+           ifname: ifname,
+           config: normalized
+         ]}
       ],
       required_ifnames: [config.bind_interface],
       up_cmds: [
         maybe_add_interface(ifname),
-        {:run, "ip", init_device_args(ifname, config.bitrate, config.loopback)},
         {:run_ignore_errors, "ip", ["addr", "flush", "dev", ifname, "label", ifname]},
+        {:run_ignore_errors, "ip", ["link", "set", ifname, "down"]},
+        {:run, "ip", init_device_args(ifname, config.bitrate, config.loopback)},
         {:run, "ip", ["link", "set", ifname, "up"]}
       ],
       up_cmd_millis: 2_000,
@@ -58,7 +62,7 @@ defmodule VintageNetSocketCan do
         {:run, "ip", ["link", "set", ifname, "down"]}
       ],
       down_cmd_millis: 2_000,
-      retry_millis: 1_000
+      retry_millis: 5_000
     }
   end
 
