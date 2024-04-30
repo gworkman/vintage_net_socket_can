@@ -1,6 +1,6 @@
 defmodule VintageNetSocketCAN do
   @moduledoc """
-  Use (SocketCAN)[https://docs.kernel.org/networking/can.html] with VintageNet
+  Use [SocketCAN](https://docs.kernel.org/networking/can.html) with VintageNet
 
   This module is not intended to be called directly but via calls to `VintageNet`. Here's an
   example:
@@ -33,8 +33,23 @@ defmodule VintageNetSocketCAN do
     loopback: :boolean
   ]
 
-  defguard is_non_empty_string(str) when is_binary(str) and str != ""
-  defguard is_non_non_negative_integer(int) when is_integer(int) and int > 0
+  @doc """
+  Configure the `can0` interface with the specified bitrate and loopback settings.
+  ```
+  iex> VintageNetSocketCAN.quick_configure(500_000, false)
+  :ok
+  ```
+  """
+  @spec quick_configure(integer(), boolean()) :: :ok | {:error, term()}
+  def quick_configure(bitrate, loopback \\ false)
+      when is_integer(bitrate) and is_boolean(loopback) do
+    config = %{type: __MODULE__, bitrate: bitrate, loopback: loopback}
+
+    VintageNet.configure("can0", config)
+  end
+
+  defguardp is_non_empty_string(str) when is_binary(str) and str != ""
+  defguardp is_non_non_negative_integer(int) when is_integer(int) and int > 0
 
   @impl VintageNet.Technology
   def normalize(%{type: __MODULE__} = config) do
